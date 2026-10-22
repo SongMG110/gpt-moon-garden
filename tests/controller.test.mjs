@@ -25,7 +25,10 @@ test('local manager rejects cross-origin mutations and cannot apply without a ho
  const invalidHost=await new Promise((resolve,reject)=>{const request=http.get(app.url+'/api/status',{headers:{Host:'evil.example'}},res=>{res.resume();resolve(res.statusCode);});request.on('error',reject);});
  assert.equal(invalidHost,403);
 });
-test('changed artwork/renderer is detected by revision and generates self-contained payload',async()=>{
+test('changed artwork/renderer is detected by revision and generates self-contained payload',async t=>{
  const payload=await buildPayload(DEFAULTS);assert.match(payload.revision,/^[a-f0-9]{16}$/);assert.ok(!payload.expression.includes('__PAYLOAD__'));assert.match(payload.expression,/data:image\/webp;base64,/);assert.ok(payload.expression.length<1000000);
  const changed=await buildPayload({...DEFAULTS,character:'chibi'});assert.equal(changed.revision,payload.revision);assert.notEqual(changed.expression,payload.expression);
+ const temporary=await fs.mkdtemp(path.join(os.tmpdir(),'moon-revision-test-'));t.after(()=>fs.rm(temporary,{recursive:true,force:true}));
+ const root=path.resolve(import.meta.dirname,'..');await fs.cp(path.join(root,'assets'),path.join(temporary,'assets'),{recursive:true});await fs.mkdir(path.join(temporary,'renderer'));const source=await fs.readFile(path.join(root,'renderer','skin.js'),'utf8');await fs.writeFile(path.join(temporary,'renderer','skin.js'),source+'\n/* revised local renderer */\n');
+ const reloaded=await buildPayload(DEFAULTS,temporary);assert.notEqual(reloaded.revision,payload.revision);assert.match(reloaded.expression,/revised local renderer/);
 });
