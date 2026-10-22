@@ -1,0 +1,10 @@
+{
+  "name": "moon-garden",
+  "interface": {"displayName": "GPT娘 · 月白云庭"},
+  "plugins": [{
+    "name": "gpt-moon-garden",
+    "source": {"source": "local", "path": "./"},
+    "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+    "category": "Productivity"
+  }]
+}

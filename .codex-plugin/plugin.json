@@ -1,0 +1,17 @@
+{
+  "name": "gpt-moon-garden",
+  "version": "0.1.0",
+  "description": "GPT娘 · 月白云庭，主题与伙伴本地管理工具。",
+  "author": {"name": "SongMG110"},
+  "skills": "./skills/",
+  "requires_local_executor": true,
+  "interface": {
+    "displayName": "GPT娘 · 月白云庭",
+    "shortDescription": "原画与Q版伙伴、月白与暮紫主题、可恢复的实时换肤。",
+    "developerName": "SongMG110",
+    "category": "Productivity",
+    "capabilities": ["Preview", "Themes", "Companion"],
+    "logo": "./assets/icon.svg",
+    "composerIcon": "./assets/icon.svg"
+  }
+}

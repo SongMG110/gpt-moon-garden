@@ -1,0 +1,165 @@
+<div id="gpt-moon-garden" data-mood="day" aria-label="GPT娘主题交互预览">
+  <style>
+    #gpt-moon-garden{--mg-ink:#393548;--mg-muted:#716a83;--mg-line:#dbd5e9;--mg-accent:#80709f;--mg-surface:#f8f7fc;--mg-pane:#eeebf6;--mg-lift:#fff;--mg-scale:1;--mg-art:.82;color:var(--mg-ink);font-family:"Segoe UI","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;color-scheme:light;isolation:isolate}
+    #gpt-moon-garden *{box-sizing:border-box}
+    #gpt-moon-garden button,#gpt-moon-garden input,#gpt-moon-garden textarea{font:inherit;color:inherit}
+    #gpt-moon-garden button{cursor:inherit}
+    #gpt-moon-garden button:focus-visible,#gpt-moon-garden textarea:focus-visible{outline:2px solid var(--mg-accent);outline-offset:3px}
+    #gpt-moon-garden button:disabled{opacity:.5}
+    #gpt-moon-garden [hidden]{display:none!important}
+    #gpt-moon-garden[data-mood="night"]{--mg-ink:#eee8fc;--mg-muted:#b7b0cb;--mg-line:#48405e;--mg-accent:#baa8e6;--mg-surface:#222033;--mg-pane:#292538;--mg-lift:#312c44;color-scheme:dark}
+    #gpt-moon-garden .mg-window{border:1px solid var(--mg-line);border-radius:15px;overflow:hidden;background:var(--mg-surface);position:relative}
+    #gpt-moon-garden .mg-titlebar{min-height:37px;display:flex;align-items:center;justify-content:space-between;padding:6px 18px;background:var(--mg-pane);border-bottom:1px solid var(--mg-line);gap:12px;font-size:12px}
+    #gpt-moon-garden .mg-app-name{display:flex;align-items:center;gap:9px;white-space:nowrap}
+    #gpt-moon-garden .mg-titlebar-note{color:var(--mg-muted);margin-right:90px}
+    #gpt-moon-garden .mg-pearl{width:8px;height:8px;display:inline-block;border-radius:50%;background:var(--mg-accent);box-shadow:0 0 12px #b9a7df}
+    #gpt-moon-garden .mg-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 18px;background:var(--mg-surface);border-bottom:1px solid var(--mg-line)}
+    #gpt-moon-garden .mg-brand{margin-right:auto;display:flex;align-items:center;gap:10px;font-size:17px;letter-spacing:.02em}
+    #gpt-moon-garden .mg-wordmark{font-family:Georgia,"Times New Roman",serif;font-size:22px}
+    #gpt-moon-garden .mg-preview-label{font-size:11px;color:var(--mg-muted);border-left:1px solid var(--mg-line);padding-left:10px;letter-spacing:.03em}
+    #gpt-moon-garden .mg-segment{display:flex;align-items:center;padding:3px;gap:2px;border:1px solid var(--mg-line);border-radius:9px;background:var(--mg-pane)}
+    #gpt-moon-garden .mg-segment button{padding:5px 11px;border:0;border-radius:6px;background:transparent;white-space:nowrap;font-size:12px;min-height:30px}
+    #gpt-moon-garden .mg-segment button[aria-pressed="true"]{background:var(--mg-lift);box-shadow:0 1px 5px #4b3d6a16;color:var(--mg-ink)}
+    #gpt-moon-garden .mg-small-action{border:0;background:transparent;padding:5px 3px;display:flex;align-items:center;gap:6px;color:var(--mg-muted);font-size:12px;min-height:30px}
+    #gpt-moon-garden .mg-layout{display:grid;grid-template-columns:176px minmax(0,1fr);min-height:555px}
+    #gpt-moon-garden .mg-sidebar{background:var(--mg-pane);border-right:1px solid var(--mg-line);padding:20px 13px 16px;display:flex;flex-direction:column;gap:7px;position:relative;z-index:3}
+    #gpt-moon-garden .mg-new{display:flex;align-items:center;gap:8px;border:1px solid var(--mg-line);background:var(--mg-lift);border-radius:9px;padding:9px 11px;text-align:left;width:100%;margin-bottom:14px}
+    #gpt-moon-garden .mg-side-label{color:var(--mg-muted);font-size:11px;padding:14px 9px 7px;letter-spacing:.12em}
+    #gpt-moon-garden .mg-nav{display:flex;align-items:center;gap:8px;padding:9px;border:0;background:transparent;text-align:left;border-radius:8px;color:var(--mg-muted);font-size:12px}
+    #gpt-moon-garden .mg-nav.current{background:var(--mg-lift);color:var(--mg-ink)}
+    #gpt-moon-garden .mg-side-bottom{margin-top:auto;padding:20px 8px 2px;display:flex;align-items:center;gap:9px;font-size:12px}
+    #gpt-moon-garden .mg-avatar{width:29px;height:29px;border:1px solid var(--mg-line);border-radius:50%;display:grid;place-items:center;background:var(--mg-lift);font-family:Georgia,serif}
+    #gpt-moon-garden .mg-version{font-size:10px;color:var(--mg-muted);margin-top:1px}
+    #gpt-moon-garden .mg-main{position:relative;min-width:0;min-height:555px;overflow:hidden;background:#e7e3f3}
+    #gpt-moon-garden .mg-wallpaper{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% center;opacity:var(--mg-art);pointer-events:none}
+    #gpt-moon-garden .mg-wash{position:absolute;inset:0;background:linear-gradient(90deg,#f4f2fbe8 0%,#f4f2fbcb 34%,#f4f2fb30 77%,#e1d9f31a 100%);pointer-events:none}
+    #gpt-moon-garden[data-mood="night"] .mg-main{background:#1f1a35}
+    #gpt-moon-garden[data-mood="night"] .mg-wallpaper{filter:brightness(.55) saturate(.85)}
+    #gpt-moon-garden[data-mood="night"] .mg-wash{background:linear-gradient(90deg,#211c35ef 0%,#28203bdc 38%,#30284955 80%,#30244944)}
+    #gpt-moon-garden .mg-main-top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:18px 23px;font-size:11px;color:var(--mg-muted);gap:8px}
+    #gpt-moon-garden .mg-theme-title{display:flex;align-items:center;gap:7px;letter-spacing:.12em}
+    #gpt-moon-garden .mg-local{font-size:10px;white-space:nowrap}
+    #gpt-moon-garden .mg-chat-column{position:relative;z-index:2;width:calc(100% - 234px);min-height:445px;margin-left:28px;padding:53px 0 24px;display:flex;flex-direction:column}
+    #gpt-moon-garden .mg-home{padding-top:12px}
+    #gpt-moon-garden .mg-overline{letter-spacing:.23em;font-size:10px;color:var(--mg-muted);margin-bottom:14px;font-family:Georgia,serif}
+    #gpt-moon-garden .mg-headline{font-family:"Songti SC","SimSun",serif;font-size:32px;font-weight:400;line-height:1.45;letter-spacing:.08em;margin:0 0 14px}
+    #gpt-moon-garden .mg-subhead{font-size:12px;color:var(--mg-muted);max-width:270px;line-height:1.9;margin:0}
+    #gpt-moon-garden .mg-prompts{display:flex;gap:13px;flex-wrap:wrap;margin:22px 0 28px}
+    #gpt-moon-garden .mg-prompt{display:flex;align-items:center;gap:6px;border:0;background:transparent;padding:4px 0;color:var(--mg-muted);font-size:11px;white-space:nowrap}
+    #gpt-moon-garden .mg-composer{background:var(--mg-lift);border:1px solid var(--mg-line);border-radius:15px;padding:13px 13px 10px;box-shadow:0 8px 28px #4337580b;margin-top:auto}
+    #gpt-moon-garden .mg-composer textarea{display:block;resize:vertical;width:100%;min-height:58px;max-height:120px;border:0;outline-offset:0;background:transparent;font-size:12px;line-height:1.7;padding:0}
+    #gpt-moon-garden .mg-composer textarea::placeholder{color:var(--mg-muted);opacity:.9}
+    #gpt-moon-garden .mg-composer-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--mg-muted);font-size:10px}
+    #gpt-moon-garden .mg-composer-context{display:flex;align-items:center;gap:6px}
+    #gpt-moon-garden .mg-send{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:50%;background:var(--mg-accent);color:var(--mg-surface)}
+    #gpt-moon-garden .mg-scene-note{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:11px;color:var(--mg-muted);font-size:10px}
+    #gpt-moon-garden .mg-companion{position:absolute;right:9px;bottom:64px;width:225px;z-index:1;display:flex;flex-direction:column;align-items:center;transform-origin:bottom center}
+    #gpt-moon-garden .mg-companion-art{width:100%;height:380px;display:flex;align-items:flex-end;justify-content:center;transform:scale(var(--mg-scale));transform-origin:bottom center;transition:transform .25s ease}
+    #gpt-moon-garden .mg-companion-art img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 12px 16px #68508e25);user-select:none;-webkit-user-drag:none}
+    #gpt-moon-garden .mg-companion-art img[data-character="chibi"]{height:70%;width:95%}
+    #gpt-moon-garden .mg-pet-button{padding:0;border:0;background:transparent;display:flex;align-items:flex-end;justify-content:center;width:100%;height:100%;touch-action:manipulation}
+    #gpt-moon-garden .mg-ground{position:absolute;bottom:40px;width:165px;height:24px;border-radius:50%;background:radial-gradient(ellipse,#a99ac060 0%,#ada2c51a 45%,transparent 70%);z-index:-1}
+    #gpt-moon-garden .mg-character-name{font-family:Georgia,"SimSun",serif;letter-spacing:.13em;font-size:16px;margin-top:9px;display:flex;gap:9px;align-items:center}
+    #gpt-moon-garden .mg-character-name::before,#gpt-moon-garden .mg-character-name::after{content:"";height:1px;width:20px;background:var(--mg-accent);opacity:.55}
+    #gpt-moon-garden .mg-character-role{font-size:10px;color:var(--mg-muted);letter-spacing:.1em;margin-top:3px}
+    #gpt-moon-garden .mg-bubble{position:absolute;right:13px;bottom:calc(100% + 8px);max-width:205px;border-radius:11px 11px 2px 11px;background:var(--mg-lift);border:1px solid var(--mg-line);padding:8px 12px;font-size:11px;color:var(--mg-ink);box-shadow:0 5px 18px #51416a10}
+    #gpt-moon-garden .mg-footer{position:absolute;bottom:17px;right:24px;font-size:10px;color:var(--mg-muted);letter-spacing:.14em}
+    #gpt-moon-garden .mg-thread{display:flex;flex-direction:column;gap:16px;padding:0 0 22px;font-size:12px;line-height:1.85;min-height:250px}
+    #gpt-moon-garden .mg-message-user{padding:10px 14px;background:var(--mg-lift);border:1px solid var(--mg-line);border-radius:12px 12px 3px 12px;margin-left:22px;white-space:pre-wrap;overflow-wrap:anywhere}
+    #gpt-moon-garden .mg-message-assistant{padding:2px 2px 0;overflow-wrap:anywhere}
+    #gpt-moon-garden .mg-message-label{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--mg-muted);margin-bottom:8px;letter-spacing:.08em}
+    #gpt-moon-garden .mg-pet-bounce{animation:mg-greet .7s ease-in-out}
+    @keyframes mg-greet{0%,100%{translate:0 0;rotate:0deg}35%{translate:0 -10px;rotate:-2deg}65%{translate:0 -4px;rotate:2deg}}
+    @media(prefers-reduced-motion:reduce){#gpt-moon-garden *,#gpt-moon-garden *::before,#gpt-moon-garden *::after{animation:none!important;transition:none!important}}
+    @media(max-width:850px){#gpt-moon-garden .mg-layout{grid-template-columns:143px minmax(0,1fr)}#gpt-moon-garden .mg-sidebar{padding-inline:10px}#gpt-moon-garden .mg-chat-column{margin-left:22px;width:calc(100% - 196px)}#gpt-moon-garden .mg-companion{width:177px;right:3px}#gpt-moon-garden .mg-companion-art{height:340px}#gpt-moon-garden .mg-headline{font-size:27px}#gpt-moon-garden .mg-preview-label{display:none}}
+    @media(max-width:620px){#gpt-moon-garden .mg-toolbar{gap:8px;padding:12px}#gpt-moon-garden .mg-brand{width:100%;margin-bottom:3px}#gpt-moon-garden .mg-layout{grid-template-columns:1fr}#gpt-moon-garden .mg-sidebar{display:none}#gpt-moon-garden .mg-chat-column{margin-left:20px;width:calc(100% - 185px)}#gpt-moon-garden .mg-companion{width:165px;right:0}#gpt-moon-garden .mg-headline{font-size:25px}#gpt-moon-garden .mg-titlebar-note{margin-right:65px}#gpt-moon-garden .mg-local{display:none}}
+    @media(max-width:420px){#gpt-moon-garden .mg-main{min-height:700px}#gpt-moon-garden .mg-chat-column{width:auto;margin:0 17px;min-height:650px;padding-top:20px}#gpt-moon-garden .mg-home{max-width:75%;padding-top:0}#gpt-moon-garden .mg-headline{font-size:25px}#gpt-moon-garden .mg-companion{bottom:230px;right:7px;width:135px;z-index:3}#gpt-moon-garden .mg-companion-art{height:240px}#gpt-moon-garden .mg-bubble{max-width:145px;right:0;font-size:10px}#gpt-moon-garden .mg-thread{padding-bottom:230px;min-height:465px}#gpt-moon-garden .mg-footer{right:16px;bottom:9px}#gpt-moon-garden .mg-titlebar-note{display:none}#gpt-moon-garden .mg-main-top{padding:16px 17px}#gpt-moon-garden .mg-segment button{padding:5px 8px}#gpt-moon-garden .mg-composer-context{font-size:10px}#gpt-moon-garden .mg-prompts{max-width:165px}}
+    @media(max-width:420px){#gpt-moon-garden .mg-main{display:flex;flex-direction:column;min-height:0}#gpt-moon-garden .mg-chat-column{display:contents}#gpt-moon-garden .mg-home{max-width:none;margin:5px 17px 0;order:1}#gpt-moon-garden .mg-prompts{max-width:none;margin-bottom:10px}#gpt-moon-garden .mg-thread{padding-bottom:0;min-height:0;margin:15px 17px 0;order:1;position:relative;z-index:2}#gpt-moon-garden .mg-companion{position:relative;bottom:auto;right:auto;width:150px;margin:16px auto;order:2}#gpt-moon-garden .mg-companion-art{height:240px}#gpt-moon-garden .mg-bubble{position:static;max-width:180px;margin:0 0 10px}#gpt-moon-garden .mg-composer{position:relative;z-index:2;order:3;margin:8px 17px 0}#gpt-moon-garden .mg-scene-note{position:relative;z-index:2;order:4;margin:10px 17px 40px}}
+    @media(pointer:coarse){#gpt-moon-garden .mg-segment button,#gpt-moon-garden .mg-small-action,#gpt-moon-garden .mg-prompt{min-height:44px}#gpt-moon-garden textarea{font-size:16px!important}#gpt-moon-garden .mg-send{width:44px;height:44px}}
+  </style>
+  <div class="mg-window">
+    <div class="mg-titlebar"><span class="mg-app-name"><span class="mg-pearl"></span> GPT娘 · 月白云庭</span><span class="mg-titlebar-note">把灵感，交给月光。</span></div>
+    <div class="mg-toolbar">
+      <div class="mg-brand"><span class="mg-wordmark">Codex</span><span class="mg-preview-label">THEME CONCEPT</span></div>
+      <div class="mg-segment" role="group" aria-label="人物风格">
+        <button class="cursor-interaction" type="button" data-style="portrait" aria-pressed="true">原画立绘</button>
+        <button class="cursor-interaction" type="button" data-style="chibi" aria-pressed="false">Q 版伙伴</button>
+      </div>
+      <div class="mg-segment" role="group" aria-label="背景氛围">
+        <button class="cursor-interaction" type="button" data-theme="day" aria-pressed="true">月白</button>
+        <button class="cursor-interaction" type="button" data-theme="night" aria-pressed="false">暮紫</button>
+      </div>
+      <button class="mg-small-action cursor-interaction" type="button" data-scene><i data-lucide="messages-square" aria-hidden="true"></i><span>对话预览</span></button>
+    </div>
+    <div class="mg-layout">
+      <aside class="mg-sidebar" aria-label="预览侧栏">
+        <button type="button" class="mg-new cursor-interaction" data-new><i data-lucide="square-pen" aria-hidden="true"></i>新聊天</button>
+        <div class="mg-side-label">工作空间</div>
+        <div class="mg-nav"><i data-lucide="folder" aria-hidden="true"></i>我的项目</div>
+        <div class="mg-nav current"><i data-lucide="sparkles" aria-hidden="true"></i>月白云庭</div>
+        <div class="mg-side-label">最近</div>
+        <button type="button" class="mg-nav cursor-interaction" data-scene>和 GPT娘一起构建</button>
+        <div class="mg-nav">关于下一次灵感</div>
+        <div class="mg-side-bottom"><span class="mg-avatar">G</span><div>你的工作台<div class="mg-version">外观概念 · v0.1</div></div></div>
+      </aside>
+      <main class="mg-main" aria-label="聊天场景预览">
+        <img class="mg-wallpaper" src="__BACKGROUND__" alt="银白浮空宫殿、淡紫云海与月环背景">
+        <div class="mg-wash"></div>
+        <div class="mg-main-top"><span class="mg-theme-title"><i data-lucide="moon-star" aria-hidden="true"></i><span data-title>月白云庭</span></span><span class="mg-local">交互预览 · 本地演示</span></div>
+        <div class="mg-chat-column">
+          <div class="mg-home" data-home>
+            <div class="mg-overline">A LITTLE MAGIC, EVERY DAY</div>
+            <h2 class="mg-headline">今天，要一起<br>构建什么？</h2>
+            <p class="mg-subhead">让想法慢慢成形。<br>我会在这里，陪你把它完成。</p>
+            <div class="mg-prompts"><button class="mg-prompt cursor-interaction" type="button" data-prompt="帮我把一个想法变成计划"><i data-lucide="lightbulb" aria-hidden="true"></i>整理灵感</button><button class="mg-prompt cursor-interaction" type="button" data-prompt="我们来构建一个新的项目"><i data-lucide="code-2" aria-hidden="true"></i>开始构建</button></div>
+          </div>
+          <div class="mg-thread" data-thread hidden><div class="mg-message-user" data-user></div><div class="mg-message-assistant"><div class="mg-message-label"><span class="mg-pearl"></span>GPT娘</div><div data-reply></div></div></div>
+          <div class="mg-composer"><textarea aria-label="预览消息" placeholder="写下你的想法，与 GPT娘一起开始…" rows="2"></textarea><div class="mg-composer-bar"><span class="mg-composer-context"><i data-lucide="folder" aria-hidden="true"></i>此计算机 · 预览</span><button class="mg-send cursor-interaction" type="button" aria-label="发送预览消息"><i data-lucide="arrow-up" aria-hidden="true"></i></button></div></div>
+          <div class="mg-scene-note"><span data-status aria-live="polite">陪伴待机</span><span>仅演示，不发送消息</span></div>
+        </div>
+        <div class="mg-companion" aria-label="GPT娘人物预览">
+          <div class="mg-bubble" data-bubble aria-live="polite" hidden></div>
+          <div class="mg-companion-art"><button class="mg-pet-button cursor-interaction" type="button" aria-label="与 GPT娘互动"><img data-character="portrait" src="__PORTRAIT__" alt="银白长发、淡紫龙翼与白裙的 GPT娘原画立绘"><img data-character="chibi" src="__CHIBI__" alt="抱臂微笑的 GPT娘 Q 版人物" hidden></button></div>
+          <div class="mg-ground"></div><div class="mg-character-name">GPT娘</div><div class="mg-character-role" data-role>月光下的灵感同行者</div>
+        </div>
+        <div class="mg-footer">SILVER HORN · LILAC WING</div>
+      </main>
+    </div>
+  </div>
+</div>
+<script>
+(()=>{
+const root=document.getElementById('gpt-moon-garden');
+const saved=window.openai?.widgetState?.modelContent||{};
+const state={style:saved.style==='chibi'?'chibi':'portrait',mood:saved.mood==='night'?'night':'day',size:100,artwork:82,visible:true};
+const find=s=>root.querySelector(s), all=s=>root.querySelectorAll(s);
+let bubbleTimer,replyTimer,bounceTimer,scene=false,clicks=0;
+const save=()=>{if(window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{style:state.style,mood:state.mood},privateContent:{size:state.size,artwork:state.artwork}}).catch(()=>{});};
+function render(){
+root.dataset.mood=state.mood;
+root.style.setProperty('--mg-scale',state.size/100);
+root.style.setProperty('--mg-art',state.artwork/100);
+all('[data-style]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.style===state.style)));
+all('[data-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===state.mood)));
+all('[data-character]').forEach(i=>i.hidden=i.dataset.character!==state.style);
+find('.mg-companion').hidden=!state.visible;
+find('[data-role]').textContent=state.style==='chibi'?'你的随身灵感小伙伴':'月光下的灵感同行者';
+find('[data-title]').textContent=state.mood==='day'?'月白云庭':'暮紫星庭';
+}
+function say(text){clearTimeout(bubbleTimer);find('[data-bubble]').textContent=text;find('[data-bubble]').hidden=false;find('.mg-local').hidden=true;bubbleTimer=setTimeout(()=>{find('[data-bubble]').hidden=true;find('.mg-local').hidden=false;},4200);}
+function bounce(){clearTimeout(bounceTimer);const p=find('.mg-pet-button');p.classList.remove('mg-pet-bounce');void p.offsetWidth;p.classList.add('mg-pet-bounce');bounceTimer=setTimeout(()=>p.classList.remove('mg-pet-bounce'),750);}
+function showHome(){clearTimeout(replyTimer);scene=false;find('[data-home]').hidden=false;find('[data-thread]').hidden=true;all('[data-scene] span').forEach(e=>e.textContent='对话预览');find('[data-status]').textContent='陪伴待机';}
+function showChat(message,animate=false){clearTimeout(replyTimer);scene=true;find('[data-home]').hidden=true;find('[data-thread]').hidden=false;find('[data-user]').textContent=message;all('[data-scene] span').forEach(e=>e.textContent='返回首页');find('[data-reply]').textContent=animate?'正在把灵感整理成形…':'可以。我们先让界面安静下来，再给灵感留一点光。银白与淡紫是底色，右侧是我的位置；原画和 Q 版，都可以陪你一起工作。';find('[data-status]').textContent=animate?'正在思考 · 演示':'已完成 · 演示';if(animate){say('交给我，我们一步一步来。');replyTimer=setTimeout(()=>{find('[data-reply]').textContent='收到啦。这里是外观交互演示：正式版本可以在这个位置显示回答，并让右侧伙伴同步进入工作、等待和完成状态。';find('[data-status]').textContent='已完成 · 演示';say('完成啦，下一步也一起吧。');bounce();},1500);}}
+all('[data-style]').forEach(b=>b.addEventListener('click',()=>{state.style=b.dataset.style;render();save();}));
+all('[data-theme]').forEach(b=>b.addEventListener('click',()=>{state.mood=b.dataset.theme;render();save();}));
+all('[data-scene]').forEach(b=>b.addEventListener('click',()=>scene?showHome():showChat('我想要一个有 GPT娘陪伴的工作台。')));
+find('[data-new]').addEventListener('click',showHome);
+all('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{find('textarea').value=b.dataset.prompt;find('textarea').focus();}));
+find('.mg-pet-button').addEventListener('click',()=>{const lines=state.style==='chibi'?['哼哼，今天的灵感由我守护。','别只看着我呀，该开始构建啦。','要休息一下吗？我在这里等你。']:['月光已经准备好了，你的想法呢？','慢慢来，好想法值得耐心。','我在。一起把它做好吧。'];say(lines[clicks++%lines.length]);bounce();});
+function send(){const t=find('textarea');const value=t.value.trim();if(!value){t.focus();return;}showChat(value,true);t.value='';}
+find('.mg-send').addEventListener('click',send);
+find('textarea').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send();}});
+render();
+if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:render});tweak.addSlider(state,'size',{label:'人物大小',min:75,max:110,unit:'%'});tweak.addSlider(state,'artwork',{label:'背景浓度',min:30,max:100,unit:'%'});tweak.addToggle(state,'visible',{label:'显示人物'});}
+})();
+</script>

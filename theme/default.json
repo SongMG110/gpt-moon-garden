@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "enabled": false,
+  "character": "portrait",
+  "mood": "day",
+  "size": 100,
+  "artwork": 70,
+  "petVisible": true,
+  "motion": true,
+  "side": "right"
+}
