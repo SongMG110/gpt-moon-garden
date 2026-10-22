@@ -57,7 +57,7 @@ export async function createController(options = {}) {
       if (!force && session.revision === payload.revision) {
         const own = await session.evaluate('globalThis.__gptMoonGarden ? {settings:globalThis.__gptMoonGarden.settings,revision:globalThis.__gptMoonGarden.revision} : null');
         if (own?.settings?.enabled === false) { await save({ ...config, enabled: false }); await restoreTargets(); return; }
-        if (own?.revision === payload.revision) {
+        if (own?.settings) {
           const valid = validateConfig(own.settings);
           if (JSON.stringify(valid) !== JSON.stringify(config)) { await save(valid); force = true; }
           else { applied++; continue; }

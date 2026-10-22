@@ -87,16 +87,24 @@
     native.textContent = `
       html[data-gpt-moon-garden]{
         --background:${bg};--foreground:${ink};--card:${panel};--popover:${panel};--border:${dark ? '#51465f' : '#ddd5e9'};
-        --color-token-bg-primary:${panel};--color-token-bg-secondary:${sidebar};--color-token-text-primary:${ink};
+        --color-token-bg-primary:${panel};--color-token-bg-secondary:${sidebar};--color-token-bg-tertiary:${dark ? '#352c46' : '#f4effa'};
+        --color-token-text-primary:${ink};
+        --color-token-text-secondary:${dark ? '#c5b8da' : '#6b5f7e'};
+        --color-token-text-tertiary:${dark ? '#9a8db0' : '#a49ab3'};
         --color-token-main-surface-primary:transparent;--color-token-sidebar-surface-primary:${sidebar};
-        --color-token-border-light:${dark ? '#51465f' : '#ddd5e9'};
+        --color-token-border:${dark ? '#51465f' : '#ddd5e9'};--color-token-border-light:${dark ? '#51465f' : '#ddd5e9'};
         background:${bg}!important;
       }
       html[data-gpt-moon-garden] body{
         color:${ink};background:linear-gradient(90deg,${dark ? `rgba(37,32,52,${veil})` : `rgba(245,242,250,${veil})`},${dark ? `rgba(37,32,52,${Math.max(.25,1-art)})` : `rgba(245,242,250,${Math.max(.12,1-art)})`}),url('${payload.images.background}') center/cover fixed!important;
       }
-      html[data-gpt-moon-garden] :is(#root, main, [role="main"]){background-color:transparent!important}
+      html[data-gpt-moon-garden] :is(#root, main, [role="main"]){background-color:${dark ? 'rgba(31,26,44,0.42)' : 'rgba(255,255,255,0.10)'}!important}
       html[data-gpt-moon-garden] :is(aside,[role="navigation"]){background-color:${sidebar}!important}
+      html[data-gpt-moon-garden] :is(input, textarea, [contenteditable="true"]){caret-color:${ink}!important}
+      html[data-gpt-moon-garden] :is(input, textarea)::placeholder, html[data-gpt-moon-garden] [contenteditable="true"]:empty:before{color:${dark ? '#9a8db0' : '#a49ab3'}!important}
+      html[data-gpt-moon-garden] :is(button,[role="button"]):hover{background-color:${dark ? '#3a3149' : '#efeaf6'}!important}
+      html[data-gpt-moon-garden] :is(button,[role="button"]):disabled{color:${dark ? '#8a7d9e' : '#b9b0c6'}!important}
+
     `;
     clampPosition();
   }
