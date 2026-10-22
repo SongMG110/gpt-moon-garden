@@ -115,6 +115,6 @@
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-label']});
   function cleanup(){clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
   render();
-  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.0'};
-  return {applied:true,version:'0.1.0',surface:main?'main':'composer',revision:payload.revision};
+  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.2'};
+  return {applied:true,version:'0.1.2',surface:main?'main':'composer',revision:payload.revision};
 })(__PAYLOAD__)

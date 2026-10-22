@@ -1,12 +1,15 @@
 {
   "name": "gpt-moon-garden",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "GPT娘 · 月白云庭 — preview, companion and opt-in live skin for Codex Desktop",
   "type": "module",
   "engines": {"node": ">=22"},
   "scripts": {
     "start": "node scripts/controller.mjs",
+    "setup": "node scripts/setup.mjs",
+    "enable": "node scripts/activate.mjs",
+    "start:foreground": "node scripts/controller.mjs --foreground",
     "doctor": "node scripts/controller.mjs --doctor",
     "test": "node --test tests/*.test.mjs",
     "build": "node scripts/build.mjs",

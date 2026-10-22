@@ -9,6 +9,12 @@ import { CdpSession, listTargets, validateEndpoint } from './lib/cdp.mjs';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const dataDirectory = () => process.env.MOON_GARDEN_DATA_DIR || path.join(process.env.LOCALAPPDATA || process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'GPTMoonGarden');
+export function readableError(error) {
+  if (error.message === 'fetch failed' || ['ECONNREFUSED', 'ETIMEDOUT'].includes(error.cause?.code)) {
+    return '管理器正常运行，但 Codex 尚未开启本机连接。请用“文件 → 退出”正常关闭客户端，再运行 Enable.cmd 一键启动并应用。';
+  }
+  return error.message;
+}
 export async function buildPayload(config, root = ROOT) {
   const images = {};
   const hash = crypto.createHash('sha256');
@@ -75,7 +81,7 @@ export async function createController(options = {}) {
   async function tick() {
     if (stopped) return;
     try { if (config.enabled) await applyToTargets(); else await connectTargets(); }
-    catch (e) { status.connected = false; status.applied = 0; status.message = '未连接或暂时不可用：' + e.message; }
+    catch (e) { status.connected = false; status.applied = 0; status.message = readableError(e); }
   }
   const server = http.createServer(async (req, res) => {
     const address = server.address();
@@ -108,7 +114,7 @@ export async function createController(options = {}) {
         return send(200, { config, status });
       }
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' });
-      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.0' });
+      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.2', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
       if (url.pathname === '/') {
         const template = await fs.readFile(path.join(root, 'manager', 'index.html'), 'utf8');
         return send(200, template.replace('__CSRF_TOKEN__', token), 'text/html; charset=utf-8');
@@ -119,7 +125,7 @@ export async function createController(options = {}) {
       }
       if (/^\/assets\/(background|portrait|chibi)\.webp$/.test(url.pathname)) return send(200, await fs.readFile(path.join(root, url.pathname.slice(1))), 'image/webp');
       return send(404, { error: 'Not found' });
-    } catch (e) { status.message = e.message; send(400, { error: e.message, config, status }); }
+    } catch (e) { status.message = readableError(e); send(400, { error: status.message, config, status }); }
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(options.port ?? Number(process.env.MOON_GARDEN_PORT || 46321), '127.0.0.1', resolve); });
   const timer = setInterval(() => serialized(tick), options.interval ?? 2500); timer.unref();
@@ -134,6 +140,12 @@ async function main() {
   if (process.argv.includes('--doctor')) {
     try { const endpoint = validateEndpoint(process.env.MOON_GARDEN_CDP || 'http://127.0.0.1:9335'); const targets = await listTargets(endpoint); console.log(JSON.stringify({ node: process.versions.node, endpoint, workspaces: targets.length, ready: targets.length > 0 }, null, 2)); }
     catch (e) { console.log(JSON.stringify({ ready: false, message: e.message, next: 'See docs/INSTALL.md. The app will not be restarted.' }, null, 2)); process.exitCode = 2; }
+    return;
+  }
+  if (!process.argv.includes('--foreground')) {
+    const { ensureManager } = await import('./service.mjs');
+    const service = await ensureManager();
+    console.log(`GPT娘 · 月白云庭: ${service.url}\nIndependent manager started. Installation alone does not apply the skin.`);
     return;
   }
   const app = await createController();

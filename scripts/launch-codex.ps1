@@ -10,5 +10,5 @@ if (-not $AppPath) {
     if ($package) { $AppPath = Join-Path $package.InstallLocation 'app/ChatGPT.exe' }
 }
 if (-not $AppPath -or -not (Test-Path -LiteralPath $AppPath)) { throw 'App not found. Supply -AppPath with the installed ChatGPT.exe path.' }
-Start-Process -FilePath $AppPath -ArgumentList @('--remote-debugging-address=127.0.0.1',"--remote-debugging-port=$Port") -WindowStyle Hidden
+Start-Process -FilePath $AppPath -ArgumentList @('--remote-debugging-address=127.0.0.1',"--remote-debugging-port=$Port") -WindowStyle Normal
 Write-Output "Started the app with a local debugging port ($Port). No installation files were changed."

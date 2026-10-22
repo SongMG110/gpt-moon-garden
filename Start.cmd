@@ -7,6 +7,6 @@ if errorlevel 1 (
   exit /b 1
 )
 echo Open http://127.0.0.1:46321 in your browser.
-echo Keep this console open while using the manager. Ctrl+C stops the manager.
+echo The manager starts independently. This console may be closed afterwards.
 node "%~dp0scripts\controller.mjs"
 pause

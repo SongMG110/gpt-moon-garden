@@ -2,7 +2,7 @@
 
 **给 Codex Desktop 的银白淡紫主题与角色伙伴。** 支持原画 / Q版、月白 / 暮紫、独立预览、点击与拖动，以及可恢复的本机实时换肤。
 
-> v0.1.0 是实验版。预览与模拟页面交互已验证；真实 Codex 换肤需要单独启用本机调试接口，并可能随官方界面变化而需要适配。项目与 OpenAI 无隶属关系。
+> v0.1.2 是实验版，为 GitHub 插件市场安装补上 Windows 固定运行器、独立按需任务与桌面启动入口。预览与模拟页面交互已验证；真实 Codex 换肤需要首次启用本机调试接口，并可能随官方界面变化而需要适配。项目与 OpenAI 无隶属关系。
 
 | 月白 · 原画 | 暮紫 · Q版 |
 |---|---|
@@ -13,8 +13,8 @@
 从 [Releases](https://github.com/SongMG110/gpt-moon-garden/releases) 下载 ZIP，解压后：
 
 1. 仅看预览：双击 `preview/index.html`，不必连接 Codex。
-2. 打开管理器：Windows 双击 `Start.cmd`，再访问 `http://127.0.0.1:46321`。需要 **Node.js 22+**；Codex 内执行时也可使用其自带 Node。
-3. 需要真实换肤时，按[安装说明](docs/INSTALL.md)启用本机调试接口，然后在管理器点击“应用到 Codex”。安装本身不会自动应用。
+2. Windows 双击 **`Setup.cmd`** 配置固定运行器与按需管理任务。需要 **Node.js 22+**；Codex 内执行时也可使用其自带 Node。
+3. 正常退出 Codex 后，双击新建的 **GPT Moon Garden** 桌面快捷方式。它会启动客户端、等待工作区连接并自动尝试应用；已经运行且没有接口时会拒绝继续，不结束进程。
 
 也可以从 GitHub 添加插件市场：
 
@@ -23,6 +23,8 @@ codex plugin marketplace add SongMG110/gpt-moon-garden
 ```
 
 在桌面端插件目录中选择「GPT娘 · 月白云庭」来源并安装。初次添加来源可能需要自然重启桌面端；安装后可对 Codex 说 **“使用 moon-garden 打开主题管理器”**。这个技能插件负责管理本地皮肤运行器，并非官方全局换肤 API。发布到 GitHub 不代表已通过官方公共插件目录审核。
+
+**从插件市场安装的用户请先看 [逐步配置指南](docs/SETUP.zh-CN.md)**：安装后选择插件并请求“为我的 Windows 配置月白云庭，运行 setup 并创建启动快捷方式”。固定运行器不依赖会被更新的插件缓存目录。
 
 ## 更新时会中断吗？
 
@@ -53,6 +55,7 @@ codex plugin marketplace add SongMG110/gpt-moon-garden
 npm test
 npm run build
 npm start
+npm run enable
 npm run package
 ```
 

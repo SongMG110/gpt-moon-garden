@@ -11,7 +11,7 @@
 <div><label for="artwork">背景浓度 <output id="artwork-value">70%</output></label><input id="artwork" type="range" min="0" max="100" value="70"></div>
 <div><label class="check"><input id="petVisible" type="checkbox" checked>显示人物</label><label class="check"><input id="motion" type="checkbox" checked>互动动效</label></div>
 <div class="actions"><button id="apply" class="primary" type="button">应用到 Codex</button><button id="restore" type="button">恢复默认</button><button id="check" type="button">检查连接</button></div>
-<div class="status" aria-live="polite"><strong id="state-title">尚未应用</strong><div id="status">正在读取设置…</div><div id="error" role="alert" class="error"></div><div class="note">应用需要 Codex 已启用本机调试接口。缺少接口时不会关闭或重启应用。素材和样式支持热更新；控制器代码更新需重启控制器。</div></div>
+<div class="status" aria-live="polite"><strong id="state-title">尚未应用</strong><div id="status">正在读取设置…</div><div id="error" role="alert" class="error"></div><div class="note">首次应用：先用“文件 → 退出”正常关闭 Codex，再运行解压目录的 Enable.cmd。它会启动客户端并自动尝试应用；不会结束运行中的任务。管理器现在独立运行，关闭启动窗口后仍可访问。</div></div>
 </section><section aria-label="主题预览"><div class="preview-top"><span>外观预览 · 不调用模型</span><a href="/preview" target="_blank" rel="noopener">单独打开预览 ↗</a></div><iframe src="/preview" title="月白云庭交互预览"></iframe></section></main>
 <footer>Community project · 不修改官方安装文件 · 本机管理，无遥测</footer>
 <script>

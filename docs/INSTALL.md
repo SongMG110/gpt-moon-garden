@@ -1,12 +1,14 @@
 # 安装、启用与恢复
 
+**从 GitHub 插件市场安装请优先按 [逐步配置指南](SETUP.zh-CN.md) 操作。** v0.1.2 新增 `Setup.cmd` / `npm run setup`，配置固定运行器和 Windows 按需管理任务，解决代理终端结束或客户端退出后管理器不可访问的问题。配置后从桌面 **GPT Moon Garden** 入口启用主题。
+
 ## 零修改预览
 
 打开 `preview/index.html`。这是本地演示，不发送模型请求，不连接调试接口，也不读取当前聊天。
 
 ## 启动管理器
 
-安装 Node.js 22+ 后，在项目根目录运行 `npm start`。Windows 可以双击 `Start.cmd` 并保留控制台窗口；按 Ctrl+C 可停止管理器。管理地址默认为 `http://127.0.0.1:46321`。通过 Codex 技能启动时也可使用其终端执行器和自带 Node。不安装隐藏启动或自启动项。不要将本地管理器通过公网代理暴露出去。
+安装 Node.js 22+ 后，在项目根目录运行 `npm start`。Windows 可以双击 `Start.cmd`。v0.1.1 起，默认启动一个独立后台管理器并验证健康状态，启动窗口可关闭；调试时用 `npm run start:foreground` 保持在前台运行。管理地址默认为 `http://127.0.0.1:46321`。通过 Codex 技能启动时也可使用其终端执行器和自带 Node。不安装操作系统自启动项。不要将本地管理器通过公网代理暴露出去。
 
 管理器默认不开启皮肤。它只连接配置的 `127.0.0.1` 调试接口；所有背景和角色使用本地文件，不需要账户或 API key。
 
@@ -14,10 +16,14 @@
 
 这是独立于插件目录安装的首次设置。当前官方插件清单没有任意重写宿主全局样式的标准入口，因此真实换肤采用社区常用的本机 CDP 连接。CDP 对本机进程具有较强权限，只应在可信本机环境中开启。
 
-1. **结束当前工作后**，正常关闭 Codex / ChatGPT；脚本不会替你关闭。
-2. Windows 运行 `powershell -NoProfile -File scripts/launch-codex.ps1`。非 Store 安装可用 `-AppPath` 指定安装的 `ChatGPT.exe`。
-3. 启动器仅在应用尚未运行时，用 `--remote-debugging-address=127.0.0.1 --remote-debugging-port=9335` 启动；应用已运行时会直接返回。
-4. 打开管理器，点“检查连接”，然后点“应用到 Codex”。如果当前版本不允许调试、找不到可识别的 app:// 工作区，管理器会提示，不修改安装包或绕过保护。
+1. **结束当前工作后**，在 Codex 使用 **文件 → 退出**正常退出；脚本不会替你关闭。如果还有后台 ChatGPT 进程，启动器会提示，不会强行结束。
+2. Windows 双击 **`Enable.cmd`**。它先确保独立管理器可访问，再以普通可见窗口启动 Codex，等待工作区连接并自动尝试应用。
+3. 启动器仅在应用尚未运行时，用 `--remote-debugging-address=127.0.0.1 --remote-debugging-port=9335` 启动；应用已运行但没有接口时会直接返回。
+4. 成功提示必须显示 `Theme applied to ... workspace(s)`；管理器 `/api/status` 也必须显示 `enabled=true` 和 `applied>0`。只显示管理页可访问不等于主题已应用。如果当前版本不允许调试或找不到可识别的 app:// 工作区，会报告失败，不修改安装包或绕过保护。
+
+非 Store 安装可运行 `node scripts/activate.mjs --app-path "你的 ChatGPT.exe 路径"`。只想先配置时，使用 `Start.cmd` 并手动在管理器点击“应用到 Codex”。
+
+后台管理器日志位于用户配置目录的 `controller.log` 和 `controller-error.log`。如网页无法访问，重新运行 `Start.cmd` 会检查现有实例并在必要时启动，不会重复启动已正常运行的管理器。
 
 对于 macOS / Linux，本地运行器可以启动，但本版不提供经过验证的应用启动器；请自行启用可信本机调试接口。真实界面选择器适配仍为实验性质。
 
