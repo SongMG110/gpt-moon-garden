@@ -8,11 +8,12 @@ $ErrorActionPreference = 'Continue'
 # ActivateApplication), which starts the registered Store package WITH command-line arguments.
 # This is the same approach used by Codex-Dream-Skin.
 
-$appRunning = Get-Process -Name 'ChatGPT','Codex' -ErrorAction SilentlyContinue
-if ($appRunning) {
-    Write-Output 'Codex/ChatGPT is already running. No process was stopped or restarted.'
-    Write-Output 'Finish the current task and close the app normally. Then run this launcher.'
-    exit 2
+# Already-running check is based on the CDP endpoint, not raw processes:
+# a stale/zombie process must not block starting a fresh CDP-enabled instance.
+$alreadyDebug = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+if ($alreadyDebug) {
+    Write-Output "CDP endpoint 127.0.0.1:$Port is already listening; nothing to launch."
+    exit 0
 }
 
 $pkg = Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1
