@@ -25,11 +25,16 @@
     .pet:active{cursor:grabbing}.pet img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 7px 14px #6c4f8b38);user-select:none;-webkit-user-drag:none}
     .pet img.chibi{height:72%}.caption{font-size:12px;letter-spacing:.15em;margin-top:5px;text-shadow:0 1px 8px var(--panel)}
     .bubble{padding:8px 12px;border:1px solid var(--line);background:var(--panel);border-radius:12px 12px 2px 12px;max-width:220px;margin-bottom:8px;box-shadow:0 5px 20px #30203f12;font-size:12px}
-    .dock{position:absolute;right:24px;bottom:20px;pointer-events:auto;display:flex;gap:4px;padding:5px;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 5px 24px #30203f15}
-    .dock button{border:0;background:transparent;border-radius:7px;padding:6px 9px;font-size:12px;min-height:30px}
-    .dock button.active{background:var(--line)}[hidden]{display:none!important}
+    .dock{position:absolute;width:36px;height:36px;pointer-events:none}
+    .launcher{width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);box-shadow:0 3px 14px #30203f18;font-size:22px;line-height:1;pointer-events:auto;touch-action:none;cursor:grab;opacity:.72;user-select:none}
+    .launcher:hover,.launcher:focus-visible,.launcher[aria-expanded=true]{opacity:1}.launcher:active{cursor:grabbing}
+    .tools{position:absolute;width:232px;max-width:calc(100vw - 24px);overflow:auto;pointer-events:auto;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 5px 24px #30203f20}
+    .tools-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+    .tools-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+    .tools button{border:0;background:transparent;border-radius:7px;padding:6px 9px;font-size:12px;min-height:30px}
+    .tools button:hover,.tools button.active{background:var(--line)}.tools-header button{padding:2px 8px;font-size:18px}[hidden]{display:none!important}
     .greet{animation:moon-greet .65s ease-in-out}@keyframes moon-greet{35%{translate:0 -10px;rotate:-2deg}65%{translate:0 -3px;rotate:2deg}}
-    @media(max-width:680px){.stage{width:115px;right:12px;bottom:100px}.pet{height:185px}.dock{right:10px;bottom:12px;max-width:calc(100vw - 20px);flex-wrap:wrap}.dock button{padding:5px 7px}.bubble{font-size:11px}}
+    @media(max-width:680px){.stage{width:115px;right:12px;bottom:100px}.pet{height:185px}.bubble{font-size:11px}}
     @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
   `;
   shadow.append(style);
@@ -43,8 +48,18 @@
   pet.append(image);
   const caption = document.createElement('div'); caption.className = 'caption'; caption.textContent = 'GPT娘 · 月白云庭';
   stage.append(bubble, pet, caption);
-  const dock = document.createElement('div'); dock.className = 'dock'; dock.setAttribute('role', 'group'); dock.setAttribute('aria-label', '月白云庭外观控制');
-  const makeButton = (text, label, action) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.setAttribute('aria-label', label); b.addEventListener('click', action); dock.append(b); return b; };
+  const dock = document.createElement('div'); dock.className = 'dock';
+  const launcher = document.createElement('button'); launcher.type = 'button'; launcher.className = 'launcher'; launcher.textContent = '✧';
+  launcher.setAttribute('aria-label', '月白云庭外观设置'); launcher.setAttribute('aria-expanded', 'false'); launcher.setAttribute('aria-controls', 'moon-garden-tools');
+  launcher.title = '点击展开设置 · 拖动移动 · 方向键微调';
+  const tools = document.createElement('div'); tools.id = 'moon-garden-tools'; tools.className = 'tools'; tools.hidden = true;
+  tools.setAttribute('role', 'group'); tools.setAttribute('aria-label', '月白云庭外观控制');
+  const header = document.createElement('div'); header.className = 'tools-header';
+  const heading = document.createElement('span'); heading.textContent = '月白云庭 · 外观';
+  const closeTools = document.createElement('button'); closeTools.type = 'button'; closeTools.textContent = '×'; closeTools.setAttribute('aria-label', '折叠外观设置');
+  header.append(heading, closeTools);
+  const actions = document.createElement('div'); actions.className = 'tools-actions'; tools.append(header, actions); dock.append(launcher, tools);
+  const makeButton = (text, label, action) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.setAttribute('aria-label', label); b.addEventListener('click', action); actions.append(b); return b; };
   const portrait = makeButton('原画', '切换原画立绘', () => { settings.character = 'portrait'; render(); });
   const chibi = makeButton('Q版', '切换Q版人物', () => { settings.character = 'chibi'; render(); });
   const mood = makeButton('暮紫', '切换背景氛围', () => { settings.mood = settings.mood === 'day' ? 'night' : 'day'; render(); });
@@ -57,6 +72,80 @@
   let bubbleTimer, greetTimer, pointer = null, busy = false, observerTimer;
   const abort = new AbortController();
   let offset = { x: 0, y: 0 };
+  let dockPosition = null, dockPointer = null, suppressDockClick = false;
+  try { const p = JSON.parse(localStorage.getItem('gpt-moon-garden-dock-position') || 'null'); if (Number.isFinite(p?.x) && Number.isFinite(p?.y)) dockPosition = { x: p.x, y: p.y }; } catch {}
+  function dockBounds() {
+    const padding = 12, size = 36;
+    // Keep even a manually moved entry above the composer/model/stop control band.
+    let bottom = innerHeight - Math.min(180, innerHeight * .3);
+    const input = document.querySelector('[contenteditable="true"], textarea');
+    const rect = input?.getBoundingClientRect();
+    if (rect?.width && rect.height && rect.top > padding + size * 2) bottom = Math.min(bottom, rect.top - padding);
+    return { min: padding, maxX: Math.max(padding, innerWidth - size - padding), maxY: Math.max(padding, bottom - size) };
+  }
+  function positionTools() {
+    if (tools.hidden) return;
+    const width = tools.getBoundingClientRect().width;
+    const bounds = dockBounds();
+    tools.style.maxHeight = `${Math.max(48, bounds.maxY + 36 - bounds.min)}px`;
+    const height = tools.getBoundingClientRect().height;
+    const left = dockPosition.x - width - 8 >= bounds.min ? dockPosition.x - width - 8 : Math.min(bounds.maxX + 36 - width, dockPosition.x + 44);
+    const top = Math.max(bounds.min, Math.min(dockPosition.y, bounds.maxY + 36 - height));
+    tools.style.left = `${Math.max(bounds.min, left) - dockPosition.x}px`;
+    tools.style.top = `${top - dockPosition.y}px`;
+  }
+  function clampDockPosition() {
+    const bounds = dockBounds();
+    dockPosition ||= { x: bounds.maxX, y: Math.min(innerHeight * .42, bounds.maxY) };
+    dockPosition.x = Math.min(bounds.maxX, Math.max(bounds.min, dockPosition.x));
+    dockPosition.y = Math.min(bounds.maxY, Math.max(bounds.min, dockPosition.y));
+    dock.style.left = `${dockPosition.x}px`; dock.style.top = `${dockPosition.y}px`;
+    positionTools();
+  }
+  function saveDockPosition() { try { localStorage.setItem('gpt-moon-garden-dock-position', JSON.stringify(dockPosition)); } catch {} }
+  let observedInput = null;
+  const inputObserver = new ResizeObserver(clampDockPosition);
+  function watchInput() {
+    const input = document.querySelector('[contenteditable="true"], textarea');
+    if (input === observedInput) return;
+    inputObserver.disconnect(); observedInput = input;
+    if (input) inputObserver.observe(input);
+  }
+  function setToolsOpen(open, focus = false) {
+    tools.hidden = !open; launcher.setAttribute('aria-expanded', String(open)); positionTools();
+    if (focus) (open ? portrait : launcher).focus({ preventScroll: true });
+  }
+  launcher.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || dockPointer) return;
+    dockPointer = { id: e.pointerId, x: e.clientX, y: e.clientY, origin: { ...dockPosition }, moved: false };
+    suppressDockClick = false; launcher.setPointerCapture(e.pointerId);
+  });
+  launcher.addEventListener('pointermove', e => {
+    if (dockPointer?.id !== e.pointerId) return;
+    const dx = e.clientX - dockPointer.x, dy = e.clientY - dockPointer.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) dockPointer.moved = true;
+    if (!dockPointer.moved) return;
+    setToolsOpen(false); dockPosition = { x: dockPointer.origin.x + dx, y: dockPointer.origin.y + dy }; clampDockPosition();
+  });
+  function endDockDrag(e) {
+    if (dockPointer?.id !== e.pointerId) return;
+    suppressDockClick = dockPointer.moved; dockPointer = null; saveDockPosition();
+  }
+  launcher.addEventListener('pointerup', endDockDrag);
+  launcher.addEventListener('pointercancel', endDockDrag);
+  launcher.addEventListener('lostpointercapture', endDockDrag);
+  launcher.addEventListener('click', e => {
+    if (suppressDockClick && e.detail !== 0) { suppressDockClick = false; return; }
+    suppressDockClick = false; setToolsOpen(tools.hidden, e.detail === 0);
+  });
+  launcher.addEventListener('keydown', e => {
+    const delta = { ArrowLeft: [-16, 0], ArrowRight: [16, 0], ArrowUp: [0, -16], ArrowDown: [0, 16] }[e.key];
+    if (!delta) return;
+    e.preventDefault(); dockPosition.x += delta[0]; dockPosition.y += delta[1]; clampDockPosition(); saveDockPosition();
+  });
+  closeTools.addEventListener('click', () => setToolsOpen(false, true));
+  document.addEventListener('pointerdown', e => { if (!e.composedPath().includes(host)) setToolsOpen(false); }, { signal: abort.signal, capture: true });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !tools.hidden) { const ownFocus = shadow.activeElement; setToolsOpen(false, Boolean(ownFocus)); } }, { signal: abort.signal });
   try { const p = JSON.parse(localStorage.getItem('gpt-moon-garden-position') || 'null'); if (Number.isFinite(p?.x) && Number.isFinite(p?.y)) offset = p; } catch {}
   const clampPosition = () => {
     offset.x = Math.min(0, Math.max(-Math.max(0, innerWidth - 260), offset.x));
@@ -99,22 +188,26 @@
       html[data-gpt-moon-garden] :is(aside,[role="navigation"]){background-color:${sidebar}!important}
     `;
     clampPosition();
+    clampDockPosition();
   }
   pet.addEventListener('pointerdown', e => { if (e.button !== 0) return; pointer = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y, moved: false }; pet.setPointerCapture(e.pointerId); });
   pet.addEventListener('pointermove', e => { if (!pointer) return; const dx = e.clientX-pointer.x, dy=e.clientY-pointer.y; if (Math.abs(dx)+Math.abs(dy)>6) pointer.moved=true; offset={x:pointer.ox+dx,y:pointer.oy+dy};clampPosition(); });
   pet.addEventListener('pointerup', () => { if (!pointer) return; if (!pointer.moved) { say(settings.character === 'chibi' ? '今天的灵感，由我守护。' : '我在，一起把它做好吧。'); greet(); } pointer=null; try{localStorage.setItem('gpt-moon-garden-position',JSON.stringify(offset));}catch{} });
   pet.addEventListener('pointercancel', () => pointer=null);
   pet.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();say('我在，一起把它做好吧。');greet();}});
-  addEventListener('resize',clampPosition,{signal:abort.signal});
+  addEventListener('resize',()=>{clampPosition();clampDockPosition();},{signal:abort.signal});
   function checkActivity(){
+    watchInput();
+    clampDockPosition();
     // Only the existence of a stop control is observed; conversation text is never read.
     const next=Boolean(document.querySelector('button[aria-label="Stop generating"],button[aria-label="停止生成"],button[data-testid="stop-button"]'));
     if(next!==busy){if(next)say('正在努力，把灵感变成现实。');else if(busy){say('完成啦，下一步也一起吧。');greet();}busy=next;}
   }
   const observer=new MutationObserver(()=>{if(observerTimer)return;observerTimer=setTimeout(()=>{observerTimer=null;checkActivity();},250);});
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-label']});
-  function cleanup(){clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
+  function cleanup(){clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();inputObserver.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
+  watchInput();
   render();
-  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.2'};
-  return {applied:true,version:'0.1.2',surface:main?'main':'composer',revision:payload.revision};
+  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.3'};
+  return {applied:true,version:'0.1.3',surface:main?'main':'composer',revision:payload.revision};
 })(__PAYLOAD__)

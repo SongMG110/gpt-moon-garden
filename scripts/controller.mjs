@@ -114,7 +114,7 @@ export async function createController(options = {}) {
         return send(200, { config, status });
       }
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' });
-      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.2', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
+      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.3', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
       if (url.pathname === '/') {
         const template = await fs.readFile(path.join(root, 'manager', 'index.html'), 'utf8');
         return send(200, template.replace('__CSRF_TOKEN__', token), 'text/html; charset=utf-8');
