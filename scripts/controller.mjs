@@ -57,7 +57,7 @@ export async function createController(options = {}) {
       if (!force && session.revision === payload.revision) {
         const own = await session.evaluate('globalThis.__gptMoonGarden ? {settings:globalThis.__gptMoonGarden.settings,revision:globalThis.__gptMoonGarden.revision} : null');
         if (own?.settings?.enabled === false) { await save({ ...config, enabled: false }); await restoreTargets(); return; }
-        if (own?.revision === payload.revision) {
+        if (own?.settings) {
           const valid = validateConfig(own.settings);
           if (JSON.stringify(valid) !== JSON.stringify(config)) { await save(valid); force = true; }
           else { applied++; continue; }
@@ -114,7 +114,7 @@ export async function createController(options = {}) {
         return send(200, { config, status });
       }
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' });
-      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.3', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
+      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.4', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
       if (url.pathname === '/') {
         const template = await fs.readFile(path.join(root, 'manager', 'index.html'), 'utf8');
         return send(200, template.replace('__CSRF_TOKEN__', token), 'text/html; charset=utf-8');
