@@ -216,6 +216,6 @@
   function cleanup(){clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();inputObserver.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
   watchInput();
   render();
-  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.4'};
-  return {applied:true,version:'0.1.4',surface:main?'main':'composer',revision:payload.revision};
+  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.5'};
+  return {applied:true,version:'0.1.5',surface:main?'main':'composer',revision:payload.revision};
 })(__PAYLOAD__)

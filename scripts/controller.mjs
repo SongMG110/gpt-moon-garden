@@ -35,12 +35,14 @@ export async function createController(options = {}) {
   let config = await readConfig(configFile);
   let status = { connected: false, targets: 0, applied: 0, message: '尚未连接；打开管理页后可检查。', revision: null };
   const sessions = new Map();
+  const discoverTargets = options.discoverTargets || listTargets;
+  const openSession = options.openSession || (async target => new CdpSession(target.webSocketDebuggerUrl).connect());
   let queue = Promise.resolve();
   let stopped = false;
   const serialized = operation => { const next = queue.then(operation); queue = next.catch(() => {}); return next; };
   async function save(next) { config = await writeConfig(configFile, next); return config; }
   async function connectTargets() {
-    const targets = await listTargets(endpoint);
+    const targets = await discoverTargets(endpoint);
     status.connected = targets.length > 0; status.targets = targets.length;
     const ids = new Set(targets.map(t => t.id));
     for (const [id, session] of sessions) if (!ids.has(id) || session.closed) { session.close(); sessions.delete(id); }
@@ -49,23 +51,36 @@ export async function createController(options = {}) {
   async function applyToTargets(force = false) {
     const targets = await connectTargets();
     if (!targets.length) throw new Error('调试接口可访问，但没有找到 Codex/ChatGPT app:// 工作区。');
+    // Collect edits from every workspace BEFORE broadcasting. An unchanged window
+    // must not write its old snapshot over a setting edited in another window.
+    const snapshots = new Map();
+    let nextConfig = { ...config };
+    for (const target of targets) {
+      let session = sessions.get(target.id);
+      if (!session || session.closed) { session = await openSession(target); sessions.set(target.id, session); }
+      if (!force) {
+        const own = await session.evaluate('globalThis.__gptMoonGarden ? {settings:globalThis.__gptMoonGarden.settings,revision:globalThis.__gptMoonGarden.revision} : null');
+        snapshots.set(target.id, own);
+        if (own?.settings && session.appliedConfig) {
+          const valid = validateConfig(own.settings);
+          for (const key of Object.keys(valid)) {
+            if (valid[key] !== session.appliedConfig[key]) nextConfig[key] = valid[key];
+          }
+        }
+      }
+    }
+    if (JSON.stringify(nextConfig) !== JSON.stringify(config)) await save(nextConfig);
+    if (!config.enabled) { await restoreTargets(); return; }
     const payload = await buildPayload(config, root);
     let applied = 0;
     for (const target of targets) {
-      let session = sessions.get(target.id);
-      if (!session || session.closed) { session = await new CdpSession(target.webSocketDebuggerUrl).connect(); sessions.set(target.id, session); }
-      if (!force && session.revision === payload.revision) {
-        const own = await session.evaluate('globalThis.__gptMoonGarden ? {settings:globalThis.__gptMoonGarden.settings,revision:globalThis.__gptMoonGarden.revision} : null');
-        if (own?.settings?.enabled === false) { await save({ ...config, enabled: false }); await restoreTargets(); return; }
-        if (own?.settings) {
-          const valid = validateConfig(own.settings);
-          if (JSON.stringify(valid) !== JSON.stringify(config)) { await save(valid); force = true; }
-          else { applied++; continue; }
-        }
+      const session = sessions.get(target.id);
+      const own = snapshots.get(target.id);
+      if (!force && own?.revision === payload.revision && JSON.stringify(validateConfig(own.settings)) === JSON.stringify(config)) {
+        session.appliedConfig = { ...config }; applied++; continue;
       }
-      const currentPayload = force ? await buildPayload(config, root) : payload;
-      const result = await session.evaluate(currentPayload.expression);
-      if (result?.applied) { applied++; session.revision = payload.revision; }
+      const result = await session.evaluate(payload.expression);
+      if (result?.applied) { applied++; session.revision = payload.revision; session.appliedConfig = { ...config }; }
     }
     status.applied = applied; status.revision = payload.revision;
     status.message = applied ? '已应用；素材和样式变化会实时更新。' : '未找到支持的聊天表面，未修改界面。';
@@ -114,7 +129,7 @@ export async function createController(options = {}) {
         return send(200, { config, status });
       }
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' });
-      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.4', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
+      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.5', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
       if (url.pathname === '/') {
         const template = await fs.readFile(path.join(root, 'manager', 'index.html'), 'utf8');
         return send(200, template.replace('__CSRF_TOKEN__', token), 'text/html; charset=utf-8');
