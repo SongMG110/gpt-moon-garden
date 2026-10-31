@@ -16,6 +16,14 @@ $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoi
 # This is an on-demand task: no logon, timer or boot trigger is registered.
 $previous = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 if ($previous -and $previous.State -eq 'Running') { Stop-ScheduledTask -TaskName $taskName }
+# Stop only an old copy of THIS manager; Task Scheduler can leave its Node child alive.
+# Never stop Codex/ChatGPT or unrelated Node processes.
+$controller = Join-Path $RuntimeRoot 'scripts/controller.mjs'
+$controller = $controller.Replace('/', '\')
+$ownedManagers = Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object {
+    $_.ExecutablePath -ieq $NodePath -and $_.CommandLine -match [regex]::Escape($controller) -and $_.CommandLine -match '--foreground\s*$'
+}
+foreach ($manager in $ownedManagers) { Stop-Process -Id $manager.ProcessId -ErrorAction Stop }
 Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal -Settings $settings -Description 'GPT Moon Garden local manager. On-demand only; loopback access; no host restart.' -Force | Out-Null
 Start-ScheduledTask -TaskName $taskName
 Write-Output $taskName

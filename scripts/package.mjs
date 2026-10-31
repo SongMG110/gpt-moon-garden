@@ -7,7 +7,7 @@ const pkg=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8'));
 const dist=path.join(root,'dist');await fs.mkdir(dist,{recursive:true});
 const artifact=path.join(dist,`gpt-moon-garden-v${pkg.version}.zip`);
 // Package only maintained, public distribution files. Never include .git or local state.
-const names=['package.json','plugin.json','.codex-plugin','.agents','skills','assets','theme','renderer','manager','scripts','src','preview','docs','tests','Start.cmd','Enable.cmd','Setup.cmd','Launch-installed.cmd','README.md','LICENSE','ASSETS.md','CHANGELOG.md'];
+const names=['vendor','models','package.json','plugin.json','.codex-plugin','.agents','skills','assets','theme','renderer','manager','scripts','src','preview','docs','tests','Start.cmd','Enable.cmd','Setup.cmd','Launch-installed.cmd','README.md','LICENSE','ASSETS.md','CHANGELOG.md'];
 const child=spawnSync(process.execPath,['--input-type=module','-e',"import('./scripts/build.mjs')"],{cwd:root,stdio:'inherit'});if(child.status!==0)process.exit(child.status||1);
 if(process.platform==='win32'){
  const quote=s=>"'"+s.replaceAll("'","''")+"'";

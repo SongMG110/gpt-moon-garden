@@ -1,6 +1,6 @@
 # GPT娘 · 月白云庭：GitHub 插件市场安装与配置指南
 
-适用版本：**0.1.2 及以后**。主要支持 Windows 上的 Codex / ChatGPT 桌面端。
+适用版本：**0.2.0 及以后**。主要支持 Windows 上的 Codex / ChatGPT 桌面端。
 
 > 安装插件、启动管理器、应用主题是三个不同步骤。看到插件已启用，不代表主题已经应用。请以第 5 步的成功判定为准。
 
@@ -9,7 +9,7 @@
 1. 打开 Codex 的插件目录/插件市场。
 2. 添加 GitHub 来源：`https://github.com/SongMG110/gpt-moon-garden`。
 3. 选择来源「GPT娘 · 月白云庭」，安装同名插件，并确认已启用。
-4. 版本应为 **0.1.2 或更新**。已安装 0.1.0 的用户需要先刷新 GitHub 来源并更新/重新安装。
+4. 版本应为 **0.2.0 或更新**。已安装 0.1.0 的用户需要先刷新 GitHub 来源并更新/重新安装。
 5. 如果当前聊天没有加载插件，新建一个聊天，再选择 `@GPT娘 · 月白云庭`。
 
 如果用终端安装，等价命令为：
@@ -27,7 +27,7 @@ codex plugin add gpt-moon-garden@moon-garden
 
 > 请为我的 Windows 配置月白云庭：运行插件的 setup，安装固定运行器、启动管理器，并创建桌面启动快捷方式。不要关闭当前 Codex。
 
-插件会执行自己的 `node scripts/setup.mjs`，使用 Node.js 22+；有需要时可使用 Codex 提供的 Node 运行时。无须安装 npm 依赖。
+插件会执行自己的 `node scripts/setup.mjs`，使用 Node.js 22+；有需要时可使用 Codex 提供的 Node 运行时。无须安装 npm 依赖。首次 setup 会从固定 GitHub Release 下载两份 3D 模型（合计约 120 MiB），并校验尺寸和 SHA-256；断网时可先用 `node scripts/setup.mjs --skip-models` 配置 2D。
 
 配置程序会：
 
@@ -60,6 +60,8 @@ codex plugin add gpt-moon-garden@moon-garden
 
 | 设置 | 作用 |
 |---|---|
+| 2D / 3D | 选择立绘或真实静态模型 |
+| 原始 PBR / 纹理直显 | 3D 模式选择材质显示方式 |
 | 原画立绘 / Q版伙伴 | 切换人物样式 |
 | 月白云庭 / 暮紫星庭 | 切换明暗氛围 |
 | 人物大小、背景浓度 | 调整人物占位和背景效果 |
@@ -144,3 +146,11 @@ codex plugin add gpt-moon-garden@moon-garden
 - OpenAI 官方插件命令说明：<https://learn.chatgpt.com/docs/developer-commands>
 
 本指南中的 Windows 固定运行器与按需任务是月白云庭自身的实现，不是 OpenAI 官方插件通用要求。
+
+## 3D 模型的缓存与离线安装
+
+模型在插件版本缓存外单独保存；默认 `%LOCALAPPDATA%/GPTMoonGarden/models`。要换磁盘，可在首次 setup / install-models 前设置 `MOON_GARDEN_MODELS_DIR`，并将同一路径写到 `%LOCALAPPDATA%/GPTMoonGarden/models-location.json` 的 `directory` 字段，供按需任务重开后继续使用。
+
+如果 GitHub 模型下载失败，可以从 v0.2.0 Release 手动下载 portrait.glb 和 chibi.glb，放进该模型目录，再运行 install-models 校验。不要把自己的目录配置提交进 Git。
+
+3D 模式拖动人物可旋转，拖动人物名称条可移动。首次切换需读取大模型，暂不播放动作。PBR 与纹理直显切换复用模型；切回 2D 释放 GPU 资源。

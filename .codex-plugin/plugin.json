@@ -1,6 +1,6 @@
 {
   "name": "gpt-moon-garden",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "GPT娘 · 月白云庭，主题与伙伴本地管理工具。",
   "author": {"name": "SongMG110"},
   "skills": "./skills/",

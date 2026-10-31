@@ -6,7 +6,7 @@
 <header><div><h1>GPT娘 · 月白云庭</h1><p>原画立绘 / Q版伙伴 / 月白与暮紫</p></div><span class="tag" id="tag">独立预览</span></header>
 <main><section class="controls" aria-label="外观控制"><h2>外观与伙伴</h2>
 <div><label for="character">人物风格</label><select id="character"><option value="portrait">原画立绘</option><option value="chibi">Q版伙伴</option></select></div>
-<div><label for="mood">背景氛围</label><select id="mood"><option value="day">月白云庭</option><option value="night">暮紫星庭</option></select></div>
+<div><label for="displayMode">显示方式</label><select id="displayMode"><option value="2d">2D 立绘</option><option value="3d">3D 静态模型</option></select></div><div><label for="material">3D 材质</label><select id="material"><option value="pbr">原始 PBR 材质</option><option value="texture">纹理直显（对照贴图颜色）</option></select></div><div><label for="mood">背景氛围</label><select id="mood"><option value="day">月白云庭</option><option value="night">暮紫星庭</option></select></div>
 <div><label for="size">人物大小 <output id="size-value">100%</output></label><input id="size" type="range" min="55" max="130" value="100"></div>
 <div><label for="artwork">背景浓度 <output id="artwork-value">70%</output></label><input id="artwork" type="range" min="0" max="100" value="70"></div>
 <div><label class="check"><input id="petVisible" type="checkbox" checked>显示人物</label><label class="check"><input id="motion" type="checkbox" checked>互动动效</label></div>
@@ -16,10 +16,10 @@
 <footer>Community project · 不修改官方安装文件 · 本机管理，无遥测</footer>
 <script>
 const token='__CSRF_TOKEN__';
-const fields=['character','mood','size','artwork','petVisible','motion'];
+const fields=['character','displayMode','material','mood','size','artwork','petVisible','motion'];
 let config={},busy=false;
 const get=id=>document.getElementById(id);
-function update(data){if(data.config)config=data.config;for(const k of fields){const el=get(k);if(typeof config[k]==='boolean')el.checked=config[k];else if(config[k]!==undefined)el.value=config[k];}get('size-value').textContent=config.size+'%';get('artwork-value').textContent=config.artwork+'%';get('tag').textContent=config.enabled?'已启用':'独立预览';get('state-title').textContent=data.status?.applied?'已应用到 '+data.status.applied+' 个工作区':config.enabled?'等待连接':'尚未应用';get('status').textContent=data.status?.message||'';document.querySelector('iframe').contentWindow.postMessage({type:'moon-garden-config',config},location.origin);}
+function update(data){if(data.config)config=data.config;for(const k of fields){const el=get(k);if(typeof config[k]==='boolean')el.checked=config[k];else if(config[k]!==undefined)el.value=config[k];}get('size-value').textContent=config.size+'%';get('artwork-value').textContent=config.artwork+'%';get('tag').textContent=config.enabled?'已启用':'独立预览';get('state-title').textContent=data.status?.applied?'已应用到 '+data.status.applied+' 个工作区':config.enabled?'等待连接':'尚未应用';get('status').textContent=data.status?.message||'';const frame=document.querySelector('iframe');const desired=config.displayMode==='3d'?'/model-preview':'/preview';if(frame.getAttribute('src')!==desired)frame.src=desired;document.querySelector('iframe').contentWindow.postMessage({type:'moon-garden-config',config},location.origin);}
 async function request(route,body={}){if(busy)return;busy=true;document.querySelectorAll('.actions button').forEach(b=>b.disabled=true);get('error').textContent='';try{const res=await fetch(route,{method:'POST',headers:{'Content-Type':'application/json','X-Moon-Token':token},body:JSON.stringify(body)});const data=await res.json();if(data.config)update(data);if(!res.ok)throw new Error(data.error||'操作失败');}catch(e){get('error').textContent=e.message;}finally{busy=false;document.querySelectorAll('.actions button').forEach(b=>b.disabled=false);}}
 for(const key of fields)get(key).addEventListener('change',()=>{const el=get(key);request('/api/config',{[key]:el.type==='checkbox'?el.checked:el.type==='range'?Number(el.value):el.value});});
 for(const key of ['size','artwork'])get(key).addEventListener('input',()=>get(key+'-value').textContent=get(key).value+'%');

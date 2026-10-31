@@ -2,7 +2,7 @@
 
 **给 Codex Desktop 的银白淡紫主题与角色伙伴。** 支持原画 / Q版、月白 / 暮紫、独立预览、点击与拖动，以及可恢复的本机实时换肤。
 
-> v0.1.5 是实验版，修复跨窗口同步导致人物显示后自动隐藏的问题。外观工具改为默认折叠、可拖动并记住位置的小入口，避开输入区的模型与停止按钮。真实 Codex 换肤需要首次启用本机调试接口，并可能随官方界面变化而需要适配。项目与 OpenAI 无隶属关系。
+> v0.2.0 是实验版，增加 2D / 真 3D、原画 / Q版和 PBR / 纹理直显选项。外观工具改为默认折叠、可拖动并记住位置的小入口，避开输入区的模型与停止按钮。真实 Codex 换肤需要首次启用本机调试接口，并可能随官方界面变化而需要适配。项目与 OpenAI 无隶属关系。
 
 | 月白 · 原画 | 暮紫 · Q版 |
 |---|---|
@@ -40,6 +40,7 @@ codex plugin marketplace add SongMG110/gpt-moon-garden
 
 ## 功能
 
+- 2D / 3D，原画 / Q版，PBR / 纹理直显；3D 暂为静态模型。
 - 原画立绘 / Q版伙伴，月白云庭 / 暮紫星庭。
 - 人物大小、背景浓度、显示与动效开关。
 - 默认折叠的外观入口，可拖动、记住位置、方向键微调，自动避开输入区；点击外部或 Esc 收起设置。
@@ -65,3 +66,5 @@ npm run package
 更多：[安装](docs/INSTALL.md) · [架构与适配](docs/ARCHITECTURE.md) · [验证范围](docs/VALIDATION.md) · [更新记录](CHANGELOG.md)。欢迎提交 Issue、修复适配和贡献原创主题或角色。
 
 代码使用 [MIT](LICENSE)；素材的来源与使用范围独立记录于 [ASSETS.md](ASSETS.md)。
+
+3D 模型由 setup 下载（约 120 MiB），独立缓存并校验 SHA-256。可以用 `node scripts/setup.mjs --skip-models` 先使用 2D。模型安装失败时可重试 `node scripts/install-models.mjs`。见 [3D 建模与绑骨建议](docs/WORKFLOW-3D.zh-CN.md)。

@@ -1,0 +1,5 @@
+let viewer=null,request=null,latest={};
+async function update(config){latest=config;if(!['portrait','chibi'].includes(config.character)||!['pbr','texture'].includes(config.material))return;
+  if(viewer?.key===config.character){viewer.update({...config,petVisible:true});return;}request?.abort();viewer?.dispose();const key=config.character;viewer=globalThis.__moonGarden3D.create(document.getElementById('view'),key);viewer.update({...config,petVisible:true});const own=viewer;request=new AbortController();
+  try{const response=await fetch('/models/'+key+'.glb',{signal:request.signal});if(!response.ok)throw Error('模型未安装，请运行 setup 或 install-models');const buffer=await response.arrayBuffer();if(viewer===own){own.loadBuffer(buffer);own.update({...latest,petVisible:true});}}catch(e){if(e.name!=='AbortError'&&viewer===own)own.fail(e);}}
+addEventListener('message',e=>{if(e.origin===location.origin&&e.source===parent&&e.data?.type==='moon-garden-config')update(e.data.config);});fetch('/api/status').then(r=>r.json()).then(d=>update(d.config));

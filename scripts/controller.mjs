@@ -6,6 +6,8 @@ import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DEFAULTS, readConfig, validateConfig, writeConfig } from './lib/config.mjs';
 import { CdpSession, listTargets, validateEndpoint } from './lib/cdp.mjs';
+import {verifiedModel}from'./lib/models.mjs';
+const modelCache=new Map();
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const dataDirectory = () => process.env.MOON_GARDEN_DATA_DIR || path.join(process.env.LOCALAPPDATA || process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'GPTMoonGarden');
@@ -23,8 +25,10 @@ export async function buildPayload(config, root = ROOT) {
     images[name] = 'data:image/webp;base64,' + bytes.toString('base64'); hash.update(bytes);
   }
   const source = await fs.readFile(path.join(root, 'renderer', 'skin.js'), 'utf8'); hash.update(source);
+  let library='';
+  if(config.displayMode==='3d'){library=await fs.readFile(path.join(root,'renderer/viewer3d.bundle.js'),'utf8');hash.update(library);}
   const revision = hash.digest('hex').slice(0, 16);
-  return { revision, source, expression: source.replace('__PAYLOAD__', () => JSON.stringify({ config: validateConfig(config), images, revision })) };
+  return { revision, source, expression: (library?'if(!globalThis.__moonGarden3D){'+library+'}\n':'')+source.replace('__PAYLOAD__', () => JSON.stringify({ config: validateConfig(config), images, revision })) };
 }
 
 export async function createController(options = {}) {
@@ -41,6 +45,15 @@ export async function createController(options = {}) {
   let stopped = false;
   const serialized = operation => { const next = queue.then(operation); queue = next.catch(() => {}); return next; };
   async function save(next) { config = await writeConfig(configFile, next); return config; }
+  async function deliverModel(session){
+    if(config.displayMode!=='3d'||!config.petVisible)return;
+    const own=await session.evaluate('globalThis.__gptMoonGarden?.viewer3d?.status()');if(own?.phase!=='needs-data')return;
+    try{const key=own.key,cacheKey=root+':'+key;let bytes=modelCache.get(cacheKey);if(!bytes){bytes=await verifiedModel(root,key);modelCache.set(cacheKey,bytes);}
+      const id=await session.evaluate(`(()=>{const v=globalThis.__gptMoonGarden?.viewer3d;return v?.key===${JSON.stringify(key)}?v.begin(${bytes.length}):null})()`);if(id===null)return;
+      for(let offset=0;offset<bytes.length;offset+=2*1024*1024){const b64=bytes.subarray(offset,offset+2*1024*1024).toString('base64');if(!await session.evaluate(`globalThis.__gptMoonGarden?.viewer3d?.append(${id},${JSON.stringify(b64)})`))return;}
+      await session.evaluate(`globalThis.__gptMoonGarden?.viewer3d?.finish(${id})`);
+    }catch(e){await session.evaluate(`globalThis.__gptMoonGarden?.viewer3d?.fail(${JSON.stringify('模型未安装或载入失败，请运行 install-models。')})`);}
+  }
   async function connectTargets() {
     const targets = await discoverTargets(endpoint);
     status.connected = targets.length > 0; status.targets = targets.length;
@@ -77,10 +90,10 @@ export async function createController(options = {}) {
       const session = sessions.get(target.id);
       const own = snapshots.get(target.id);
       if (!force && own?.revision === payload.revision && JSON.stringify(validateConfig(own.settings)) === JSON.stringify(config)) {
-        session.appliedConfig = { ...config }; applied++; continue;
+        session.appliedConfig = { ...config }; applied++; await deliverModel(session); continue;
       }
       const result = await session.evaluate(payload.expression);
-      if (result?.applied) { applied++; session.revision = payload.revision; session.appliedConfig = { ...config }; }
+      if (result?.applied) { applied++; session.revision = payload.revision; session.appliedConfig = { ...config }; await deliverModel(session); }
     }
     status.applied = applied; status.revision = payload.revision;
     status.message = applied ? '已应用；素材和样式变化会实时更新。' : '未找到支持的聊天表面，未修改界面。';
@@ -129,7 +142,14 @@ export async function createController(options = {}) {
         return send(200, { config, status });
       }
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' });
-      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.1.5', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
+      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.2.0', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
+      if(url.pathname==='/model-preview'){
+        headers['Content-Security-Policy']=headers['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'").replace("img-src 'self' data:","img-src 'self' data: blob:").replace("connect-src 'self'","connect-src 'self' blob:");
+        return send(200,await fs.readFile(path.join(root,'manager/model-preview.html')),'text/html; charset=utf-8');
+      }
+      if(url.pathname==='/model-preview.js')return send(200,await fs.readFile(path.join(root,'manager/model-preview.js')),'text/javascript; charset=utf-8');
+      if(url.pathname==='/renderer/viewer3d.bundle.js')return send(200,await fs.readFile(path.join(root,'renderer/viewer3d.bundle.js')),'text/javascript; charset=utf-8');
+      if(/^\/models\/(portrait|chibi)\.glb$/.test(url.pathname))return send(200,await verifiedModel(root,url.pathname.split('/')[2].slice(0,-4)),'model/gltf-binary');
       if (url.pathname === '/') {
         const template = await fs.readFile(path.join(root, 'manager', 'index.html'), 'utf8');
         return send(200, template.replace('__CSRF_TOKEN__', token), 'text/html; charset=utf-8');

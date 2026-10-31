@@ -1,6 +1,6 @@
 {
   "name": "gpt-moon-garden",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "private": true,
   "description": "GPT娘 · 月白云庭 — preview, companion and opt-in live skin for Codex Desktop",
   "type": "module",

@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-export const DEFAULTS=Object.freeze({version:1,enabled:false,character:'portrait',mood:'day',size:100,artwork:70,petVisible:true,motion:true,side:'right'});
+export const DEFAULTS=Object.freeze({version:1,enabled:false,character:'portrait',displayMode:'2d',material:'pbr',mood:'day',size:100,artwork:70,petVisible:true,motion:true,side:'right'});
 export function validateConfig(value,{partial=false}={}){
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Configuration must be an object');
   const out=partial?{}:{...DEFAULTS};
-  const enums={character:['portrait','chibi'],mood:['day','night'],side:['left','right']};
+  const enums={character:['portrait','chibi'],displayMode:['2d','3d'],material:['pbr','texture'],mood:['day','night'],side:['left','right']};
   for(const [key,v]of Object.entries(value)){
     if(!(key in DEFAULTS))throw new Error(`Unknown setting: ${key}`);
     if(key==='version'){if(v!==1)throw new Error('Unsupported configuration version');out.version=1;}

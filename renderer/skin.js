@@ -7,7 +7,8 @@
   const composer = document.querySelector('[contenteditable="true"], textarea');
   if (!main && !composer) return { applied: false, reason: 'No supported workspace surface found' };
   const settings = { ...payload.config };
-  old?.cleanup?.();
+  const reusable3D=settings.displayMode==='3d'&&old?.viewer3d?.key===settings.character?old.viewer3d:null;
+  old?.cleanup?.(Boolean(reusable3D));
   document.getElementById(ID)?.remove();
   document.getElementById(ID + '-native')?.remove();
 
@@ -45,8 +46,9 @@
   const pet = document.createElement('button');
   pet.type = 'button'; pet.className = 'pet'; pet.setAttribute('aria-label', '拖动或点击 GPT娘');
   const image = document.createElement('img'); image.alt = 'GPT娘'; image.draggable = false;
-  pet.append(image);
-  const caption = document.createElement('div'); caption.className = 'caption'; caption.textContent = 'GPT娘 · 月白云庭';
+  const threeContainer=document.createElement('div');threeContainer.style.cssText='width:100%;height:100%;position:relative;pointer-events:auto';threeContainer.hidden=true;
+  pet.append(image,threeContainer);
+  const caption = document.createElement('div'); caption.className = 'caption'; caption.textContent = 'GPT娘 · 月白云庭';caption.style.cssText='pointer-events:auto;touch-action:none;cursor:grab';caption.title='拖动此处移动人物；3D 模式拖动人物可旋转';
   stage.append(bubble, pet, caption);
   const dock = document.createElement('div'); dock.className = 'dock';
   const launcher = document.createElement('button'); launcher.type = 'button'; launcher.className = 'launcher'; launcher.textContent = '✧';
@@ -62,6 +64,10 @@
   const makeButton = (text, label, action) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.setAttribute('aria-label', label); b.addEventListener('click', action); actions.append(b); return b; };
   const portrait = makeButton('原画', '切换原画立绘', () => { settings.character = 'portrait'; render(); });
   const chibi = makeButton('Q版', '切换Q版人物', () => { settings.character = 'chibi'; render(); });
+  const twoD=makeButton('2D','使用2D人物',()=>{settings.displayMode='2d';render();});
+  const threeD=makeButton('3D','使用3D人物',()=>{settings.displayMode='3d';render();});
+  const material=document.createElement('select');material.setAttribute('aria-label','3D人物材质');material.style.cssText='grid-column:1/-1;width:100%;font:inherit;padding:6px;border:1px solid var(--line);border-radius:7px;color:var(--ink);background:var(--panel)';
+  material.innerHTML='<option value="pbr">原始 PBR 材质</option><option value="texture">纹理直显（对照贴图颜色）</option>';material.onchange=()=>{settings.material=material.value;render();};actions.append(material);
   const mood = makeButton('暮紫', '切换背景氛围', () => { settings.mood = settings.mood === 'day' ? 'night' : 'day'; render(); });
   const visibility = makeButton('收起', '收起或显示人物', () => { settings.petVisible = !settings.petVisible; render(); });
   makeButton('恢复', '恢复默认界面', () => { settings.enabled = false; cleanup(); });
@@ -69,7 +75,7 @@
   const native = document.createElement('style'); native.id = ID + '-native';
   document.documentElement.append(native);
   document.documentElement.append(host);
-  let bubbleTimer, greetTimer, pointer = null, busy = false, observerTimer;
+  let bubbleTimer, greetTimer, pointer = null, busy = false, observerTimer,viewer3d=reusable3D;
   const abort = new AbortController();
   let offset = { x: 0, y: 0 };
   let dockPosition = null, dockPointer = null, suppressDockClick = false;
@@ -153,10 +159,15 @@
     stage.style.translate = `${offset.x}px ${offset.y}px`;
   };
   function say(text) { clearTimeout(bubbleTimer); bubble.textContent = text; bubble.hidden = false; bubbleTimer = setTimeout(() => bubble.hidden = true, 3600); }
-  function greet() { if (!settings.motion) return; clearTimeout(greetTimer); pet.classList.remove('greet'); void pet.offsetWidth; pet.classList.add('greet'); greetTimer = setTimeout(() => pet.classList.remove('greet'), 700); }
+  function greet() { if (!settings.motion||settings.displayMode==='3d') return; clearTimeout(greetTimer); pet.classList.remove('greet'); void pet.offsetWidth; pet.classList.add('greet'); greetTimer = setTimeout(() => pet.classList.remove('greet'), 700); }
   function render() {
     host.dataset.mood = settings.mood;
     image.src = payload.images[settings.character]; image.className = settings.character;
+    const is3D=settings.displayMode==='3d';image.hidden=is3D;threeContainer.hidden=!is3D;material.disabled=!is3D;material.value=settings.material||'pbr';twoD.classList.toggle('active',!is3D);threeD.classList.toggle('active',is3D);
+    if(viewer3d&&(!is3D||viewer3d.key!==settings.character)){viewer3d.dispose();viewer3d=null;}
+    if(is3D&&!viewer3d){try{viewer3d=globalThis.__moonGarden3D?.create(threeContainer,settings.character)||null;}catch(e){say('3D 初始化失败，请切回 2D。');}}
+    if(is3D&&viewer3d){viewer3d.reattach(threeContainer);viewer3d.update(settings);}
+    if(globalThis[KEY])globalThis[KEY].viewer3d=viewer3d;
     stage.hidden = !settings.petVisible;
     stage.style.transform = `scale(${settings.size / 100})`;
     portrait.classList.toggle('active', settings.character === 'portrait');
@@ -198,7 +209,10 @@
     clampPosition();
     clampDockPosition();
   }
-  pet.addEventListener('pointerdown', e => { if (e.button !== 0) return; pointer = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y, moved: false }; pet.setPointerCapture(e.pointerId); });
+  pet.addEventListener('pointerdown', e => { if (e.button !== 0||settings.displayMode==='3d') return; pointer = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y, moved: false }; pet.setPointerCapture(e.pointerId); });
+  caption.addEventListener('pointerdown',e=>{if(e.button!==0)return;pointer={x:e.clientX,y:e.clientY,ox:offset.x,oy:offset.y,moved:false};caption.setPointerCapture(e.pointerId);});
+  caption.addEventListener('pointermove',e=>{if(!pointer)return;const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;pointer.moved=true;offset={x:pointer.ox+dx,y:pointer.oy+dy};clampPosition();});
+  caption.addEventListener('pointerup',()=>{pointer=null;try{localStorage.setItem('gpt-moon-garden-position',JSON.stringify(offset));}catch{}});
   pet.addEventListener('pointermove', e => { if (!pointer) return; const dx = e.clientX-pointer.x, dy=e.clientY-pointer.y; if (Math.abs(dx)+Math.abs(dy)>6) pointer.moved=true; offset={x:pointer.ox+dx,y:pointer.oy+dy};clampPosition(); });
   pet.addEventListener('pointerup', () => { if (!pointer) return; if (!pointer.moved) { say(settings.character === 'chibi' ? '今天的灵感，由我守护。' : '我在，一起把它做好吧。'); greet(); } pointer=null; try{localStorage.setItem('gpt-moon-garden-position',JSON.stringify(offset));}catch{} });
   pet.addEventListener('pointercancel', () => pointer=null);
@@ -213,9 +227,9 @@
   }
   const observer=new MutationObserver(()=>{if(observerTimer)return;observerTimer=setTimeout(()=>{observerTimer=null;checkActivity();},250);});
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-label']});
-  function cleanup(){clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();inputObserver.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
+  function cleanup(keep3D=false){if(!keep3D)viewer3d?.dispose();clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();inputObserver.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
   watchInput();
   render();
-  globalThis[KEY]={settings,cleanup,revision:payload.revision,version:'0.1.5'};
-  return {applied:true,version:'0.1.5',surface:main?'main':'composer',revision:payload.revision};
+  globalThis[KEY]={settings,cleanup,viewer3d,revision:payload.revision,version:'0.2.0'};
+  return {applied:true,version:'0.2.0',surface:main?'main':'composer',revision:payload.revision};
 })(__PAYLOAD__)

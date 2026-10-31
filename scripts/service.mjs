@@ -57,7 +57,7 @@ export async function managerAction(route, body = {}, origin = managerOrigin()) 
   if (!token) throw new Error('Manager request token unavailable');
   const response = await fetch(origin + route, {
     method: 'POST', headers: { Origin: origin, 'X-Moon-Token': token, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body), signal: AbortSignal.timeout(15000), redirect: 'error',
+    body: JSON.stringify(body), signal: AbortSignal.timeout(60000), redirect: 'error',
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Manager action failed');

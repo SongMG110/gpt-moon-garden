@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "release": "v0.2.0",
+  "models": {
+    "portrait": {"file":"portrait.glb","bytes":63530956,"sha256":"ce6e8aed69cbd662f60597ea37387d55f26656aa028948f24482df2d0b5325b0","url":"https://github.com/SongMG110/gpt-moon-garden/releases/download/v0.2.0/portrait.glb"},
+    "chibi": {"file":"chibi.glb","bytes":62182072,"sha256":"cb2258965e7d4bf58695cdb945c9f0914ce30df814c1bb86e1ff9c2eeb8607f8","url":"https://github.com/SongMG110/gpt-moon-garden/releases/download/v0.2.0/chibi.glb"}
+  }
+}
