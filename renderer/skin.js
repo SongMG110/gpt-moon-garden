@@ -7,7 +7,7 @@
   const composer = document.querySelector('[contenteditable="true"], textarea');
   if (!main && !composer) return { applied: false, reason: 'No supported workspace surface found' };
   const settings = { ...payload.config };
-  const reusable3D=settings.displayMode==='3d'&&old?.viewer3d?.key===settings.character?old.viewer3d:null;
+  const reusable3D=settings.displayMode==='3d'&&old?.viewer3d?.apiVersion===2&&old?.viewer3d?.key===settings.character?old.viewer3d:null;
   old?.cleanup?.(Boolean(reusable3D));
   document.getElementById(ID)?.remove();
   document.getElementById(ID + '-native')?.remove();
@@ -48,7 +48,7 @@
   const image = document.createElement('img'); image.alt = 'GPT娘'; image.draggable = false;
   const threeContainer=document.createElement('div');threeContainer.style.cssText='width:100%;height:100%;position:relative;pointer-events:auto';threeContainer.hidden=true;
   pet.append(image,threeContainer);
-  const caption = document.createElement('div'); caption.className = 'caption'; caption.textContent = 'GPT娘 · 月白云庭';caption.style.cssText='pointer-events:auto;touch-action:none;cursor:grab';caption.title='拖动此处移动人物；3D 模式拖动人物可旋转';
+  const caption = document.createElement('div'); caption.className = 'caption'; caption.textContent = 'GPT娘 · 月白云庭';caption.style.cssText='pointer-events:auto;touch-action:none;cursor:grab';caption.title='左键移动 · 滚轮缩放 · 3D 右键旋转';
   stage.append(bubble, pet, caption);
   const dock = document.createElement('div'); dock.className = 'dock';
   const launcher = document.createElement('button'); launcher.type = 'button'; launcher.className = 'launcher'; launcher.textContent = '✧';
@@ -165,7 +165,7 @@
     image.src = payload.images[settings.character]; image.className = settings.character;
     const is3D=settings.displayMode==='3d';image.hidden=is3D;threeContainer.hidden=!is3D;material.disabled=!is3D;material.value=settings.material||'pbr';twoD.classList.toggle('active',!is3D);threeD.classList.toggle('active',is3D);
     if(viewer3d&&(!is3D||viewer3d.key!==settings.character)){viewer3d.dispose();viewer3d=null;}
-    if(is3D&&!viewer3d){try{viewer3d=globalThis.__moonGarden3D?.create(threeContainer,settings.character)||null;}catch(e){say('3D 初始化失败，请切回 2D。');}}
+    if(is3D&&!viewer3d){try{viewer3d=globalThis.__moonGarden3D?.create(threeContainer,settings.character,{externalMove:true})||null;}catch(e){say('3D 初始化失败，请切回 2D。');}}
     if(is3D&&viewer3d){viewer3d.reattach(threeContainer);viewer3d.update(settings);}
     if(globalThis[KEY])globalThis[KEY].viewer3d=viewer3d;
     stage.hidden = !settings.petVisible;
@@ -209,7 +209,9 @@
     clampPosition();
     clampDockPosition();
   }
-  pet.addEventListener('pointerdown', e => { if (e.button !== 0||settings.displayMode==='3d') return; pointer = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y, moved: false }; pet.setPointerCapture(e.pointerId); });
+  pet.addEventListener('pointerdown', e => { if (e.button !== 0) return; pointer = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y, moved: false }; pet.setPointerCapture(e.pointerId); });
+  stage.addEventListener('wheel',e=>{if(settings.displayMode!=='2d'||e.deltaY===0)return;e.preventDefault();e.stopPropagation();settings.size=Math.max(55,Math.min(130,settings.size+(e.deltaY<0?5:-5)));render();},{passive:false});
+  pet.addEventListener('contextmenu',e=>{if(settings.displayMode==='3d')e.preventDefault();});
   caption.addEventListener('pointerdown',e=>{if(e.button!==0)return;pointer={x:e.clientX,y:e.clientY,ox:offset.x,oy:offset.y,moved:false};caption.setPointerCapture(e.pointerId);});
   caption.addEventListener('pointermove',e=>{if(!pointer)return;const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;pointer.moved=true;offset={x:pointer.ox+dx,y:pointer.oy+dy};clampPosition();});
   caption.addEventListener('pointerup',()=>{pointer=null;try{localStorage.setItem('gpt-moon-garden-position',JSON.stringify(offset));}catch{}});
@@ -230,6 +232,6 @@
   function cleanup(keep3D=false){if(!keep3D)viewer3d?.dispose();clearTimeout(bubbleTimer);clearTimeout(greetTimer);clearTimeout(observerTimer);observer.disconnect();inputObserver.disconnect();abort.abort();host.remove();native.remove();document.documentElement.removeAttribute('data-gpt-moon-garden');}
   watchInput();
   render();
-  globalThis[KEY]={settings,cleanup,viewer3d,revision:payload.revision,version:'0.2.0'};
-  return {applied:true,version:'0.2.0',surface:main?'main':'composer',revision:payload.revision};
+  globalThis[KEY]={settings,cleanup,viewer3d,revision:payload.revision,version:'0.2.1'};
+  return {applied:true,version:'0.2.1',surface:main?'main':'composer',revision:payload.revision};
 })(__PAYLOAD__)

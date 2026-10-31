@@ -28,7 +28,7 @@ export async function buildPayload(config, root = ROOT) {
   let library='';
   if(config.displayMode==='3d'){library=await fs.readFile(path.join(root,'renderer/viewer3d.bundle.js'),'utf8');hash.update(library);}
   const revision = hash.digest('hex').slice(0, 16);
-  return { revision, source, expression: (library?'if(!globalThis.__moonGarden3D){'+library+'}\n':'')+source.replace('__PAYLOAD__', () => JSON.stringify({ config: validateConfig(config), images, revision })) };
+  return { revision, source, expression: (library?'if(globalThis.__moonGarden3D?.apiVersion!==2){'+library+'}\n':'')+source.replace('__PAYLOAD__', () => JSON.stringify({ config: validateConfig(config), images, revision })) };
 }
 
 export async function createController(options = {}) {
@@ -142,7 +142,7 @@ export async function createController(options = {}) {
         return send(200, { config, status });
       }
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' });
-      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.2.0', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
+      if (url.pathname === '/api/status') return send(200, { config, status, endpoint, version: '0.2.1', service: { mode: process.env.MOON_GARDEN_SERVICE || 'process' } });
       if(url.pathname==='/model-preview'){
         headers['Content-Security-Policy']=headers['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'").replace("img-src 'self' data:","img-src 'self' data: blob:").replace("connect-src 'self'","connect-src 'self' blob:");
         return send(200,await fs.readFile(path.join(root,'manager/model-preview.html')),'text/html; charset=utf-8');

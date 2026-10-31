@@ -153,4 +153,4 @@ codex plugin add gpt-moon-garden@moon-garden
 
 如果 GitHub 模型下载失败，可以从 v0.2.0 Release 手动下载 portrait.glb 和 chibi.glb，放进该模型目录，再运行 install-models 校验。不要把自己的目录配置提交进 Git。
 
-3D 模式拖动人物可旋转，拖动人物名称条可移动。首次切换需读取大模型，暂不播放动作。PBR 与纹理直显切换复用模型；切回 2D 释放 GPU 资源。
+左键拖动人物可移动，滚轮缩放；3D 右键拖动旋转，2D 没有右键旋转。首次切换需读取大模型，暂不播放动作。PBR 与纹理直显切换复用模型；切回 2D 释放 GPU 资源。
